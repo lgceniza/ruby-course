@@ -10,9 +10,3 @@ def caesar_cipher(string, shift_factor)
   end
   ciphered_string.join('')
 end
-
-puts "Input a string: "
-string = gets
-puts "Input the shift factor: "
-shift_factor = gets.to_i
-puts caesar_cipher(string, shift_factor)
