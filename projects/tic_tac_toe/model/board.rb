@@ -2,8 +2,7 @@
 
 # Holds information about the game board
 class Board
-  attr_accessor :board
-  attr_reader :winner
+  attr_reader :board, :winner
 
   def initialize
     @board = Array.new(3) { Array.new(3) }
@@ -23,30 +22,24 @@ class Board
 
   def add_piece(position, piece)
     coords = parse_position(position)
-
-    unless coords
-      puts 'Invalid position!'
-      return false
-    end
-
-    row, col = coords
-
-    unless board[row][col].nil?
+    if coords
+      row, col = coords
+      if board[row][col].nil?
+        board[row][col] = piece
+        return true
+      end
       puts 'You cannot move into an occupied cell!'
-      return false
+    else
+      puts 'Invalid position!'
     end
-
-    board[row][col] = piece
-
-    true
   end
 
   def check_for_win
     check_rows(board)
-    check_rows(board.transpose) if @winner.nil?
-    check_diagonal(board) if @winner.nil?
+    check_rows(board.transpose) if winner.nil?
+    check_diagonal(board) if winner.nil?
 
-    return true unless @winner.nil?
+    return true unless winner.nil?
 
     false
   end
@@ -81,10 +74,12 @@ class Board
   end
 
   def parse_position(position)
+    return nil if position.strip.empty? || position.strip.length > 2
+
     row = position[0].upcase.ord - 'A'.ord
     col = position[1].to_i - 1
 
-    return false if row < 0 || row > 2 || col < 0 || col > 2
+    return nil if row < 0 || row > 2 || col < 0 || col > 2
 
     [row, col]
   end
