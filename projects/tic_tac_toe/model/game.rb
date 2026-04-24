@@ -14,16 +14,15 @@ class Game
   end
 
   def won?
-    @won || @board.check_for_win
+    @won ||= @board.check_for_win
   end
 
   def stalemate?
     @board.full?
   end
 
-  def declare_winner
-    @won = true
-    puts "Player #{@board.winner} has won!"
+  def winner_message
+    "Player #{@board.winner} has won!"
   end
 
   def switch_player
@@ -38,8 +37,8 @@ class Game
     @board.display
   end
 
-  def move(piece)
-    position = gets
+  def move(piece, input: $stdin)
+    position = input.gets.chomp
     @board.add_piece(position, piece)
   end
 end

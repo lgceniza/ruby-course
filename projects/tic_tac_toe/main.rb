@@ -12,7 +12,7 @@ def main
     game.move_stage
 
     if game.won?
-      game.declare_winner
+      puts game.winner_message
     elsif game.stalemate?
       puts 'Stalemate!'
       break
