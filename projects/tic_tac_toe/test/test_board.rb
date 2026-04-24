@@ -1,57 +1,112 @@
 # frozen_string_literal: true
 
-require_relative 'mock'
+require 'rspec/mocks'
 require_relative '../model/board'
 
 RSpec.describe 'Board' do
-  xit 'initializes properly' do
-    # check variables
+  board = nil
+
+  before(:each) do
+    board = Board.new
   end
 
-  xit 'displays board with proper format' do
+  it 'initializes properly' do
+    board = Board.new
+    expect(board.board).to eq([[nil, nil, nil], [nil, nil, nil], [nil, nil, nil]])
+    expect(board.winner).to eq(nil)
   end
 
-  xit 'adds player piece in a correct position' do
-    # parse_position returns legit coordinates, should return true
+  it 'displays board with proper format' do
+    expected = <<~OUTPUT
+        | 1 | 2 | 3 |
+      A |   |   |   |
+      B |   |   |   |
+      C |   |   |   |
+
+    OUTPUT
+
+    expect { board.display }.to output(expected).to_stdout
+
+    board.add_piece('b2', 'X')
+    expected = <<~OUTPUT
+        | 1 | 2 | 3 |
+      A |   |   |   |
+      B |   | X |   |
+      C |   |   |   |
+
+    OUTPUT
+
+    expect { board.display }.to output(expected).to_stdout
   end
 
-  xit 'refuses to add player piece to an occupied cell' do
-    # parse_position returns legit coordinates, print board is occupied, should return false
+  it 'adds player piece in a correct position' do
+    expect(board.add_piece('A1', 'X')).to be true
+    expect(board.board[0][0]).to eq('X')
   end
 
-  xit 'refuses to add player piece to invalid cell' do
-    # parse_position returns nil
-    # print invalid position, should return false
+  it 'refuses to add player piece to an occupied cell' do
+    board.add_piece('A1', 'X')
+    expect(board.add_piece('A1', 'O')).to be nil
+    expect { board.add_piece('A1', 'O') }.to output("You cannot move into an occupied cell!\n").to_stdout
   end
 
-  xit 'returns winner for row win condition' do
+  it 'refuses to add player piece to invalid cell' do
+    expect(board.add_piece('invalid', 'X')).to be nil
+    expect { board.add_piece('invalid', 'X') }.to output("Invalid position!\n").to_stdout
   end
 
-  xit 'returns winner for col win condition' do
+  it 'returns winner for row win condition' do
+    board.instance_variable_set(:@board, [%w[X X X], [nil, nil, nil], [nil, nil, nil]])
+    expect(board.check_for_win).to be true
+    expect(board.winner).to eq('X')
   end
 
-  xit 'returns winner for diagonal win condition' do
+  it 'returns winner for col win condition' do
+    board.instance_variable_set(:@board, [[nil, 'X', nil], [nil, 'X', nil], [nil, 'X', nil]])
+    expect(board.check_for_win).to be true
+    expect(board.winner).to eq('X')
   end
 
-  xit 'returns false/no winner if no win condition found' do
+  it 'returns winner for diagonal win condition' do
+    board.instance_variable_set(:@board, [['X', nil, nil], [nil, 'X', nil], [nil, nil, 'X']])
+    expect(board.check_for_win).to be true
+    expect(board.winner).to eq('X')
   end
 
-  xit 'correctly checks if the board is full' do
+  it 'returns false/no winner if no win condition found' do
+    board.instance_variable_set(:@board, [[nil, nil, nil], [nil, nil, nil], [nil, nil, nil]])
+    expect(board.check_for_win).to be false
+    expect(board.winner).to eq(nil)
   end
 
-  xit 'checks if three same symbols in a row is present' do
+  it 'correctly checks if the board is full' do
+    expect(board.full?).to be false
+
+    board.instance_variable_set(:@board, [%w[X X O], [nil, 'O', 'X'], %w[X O X]])
+    expect(board.full?).to be false
+
+    board.instance_variable_set(:@board, [%w[X X O], %w[O O X], %w[X O X]])
+    expect(board.full?).to be true
   end
 
-  xit 'parses row and column for legit position cell' do
+  it 'checks if three same symbols in a row is present' do
+    expect(board.send(:three_in_a_row, %w[X X X])).to be true
+    expect(board.send(:three_in_a_row, %w[O O O])).to be true
+    expect(board.send(:three_in_a_row, %w[X O X])).to be false
+    expect(board.send(:three_in_a_row, [nil, nil, nil])).to be false
   end
 
-  xit 'returns nil for invalid position cell' do
-    # empty string
-    # letters only
-    # numbers only
-    # negative number
-    # valid letter, invalid number
-    # invalid letter, valid number
-    # invalid letter, invalid number
+  it 'parses row and column for legit position cell' do
+    expect(board.send(:parse_position, 'A1')).to eq([0, 0])
+    expect(board.send(:parse_position, 'A2')).to eq([0, 1])
+    expect(board.send(:parse_position, 'B2')).to eq([1, 1])
+    expect(board.send(:parse_position, 'C3')).to eq([2, 2])
+  end
+
+  pos_inputs = ['', 'A', 'AA', '1', '11', '-1', 'A6', 'D1', 'D67']
+  pos_inputs.each do |pos|
+    it "returns nil for invalid position cell #{pos}" do
+      expect(board.send(:parse_position, pos)).to eq(nil)
+    end
   end
 end
